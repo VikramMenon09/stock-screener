@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { analyzeStock } from '@/lib/analysis-engine'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import type {
   AnalysisResult,
   StockQuote,
@@ -11,16 +12,37 @@ import type {
 const FMP_API_KEY = process.env.FMP_API_KEY
 const ALPHA_VANTAGE_API_KEY = process.env.ALPHA_VANTAGE_API_KEY
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
-  const symbol = searchParams.get('symbol')?.toUpperCase()
+// Strict: stock symbol is 1–10 uppercase alphanumeric chars (covers most exchanges)
+const SYMBOL_REGEX = /^[A-Z0-9]{1,10}$/
 
-  if (!symbol) {
+export async function GET(request: NextRequest) {
+  // Rate limit: 30 requests per minute per IP
+  const ip = getClientIp(request)
+  const rl = rateLimit(`analyze:${ip}`, { limit: 30, windowMs: 60_000 })
+  if (!rl.success) {
     return NextResponse.json(
-      { error: 'Symbol is required' },
+      { error: 'Too many requests. Please slow down.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      }
+    )
+  }
+
+  const searchParams = request.nextUrl.searchParams
+  const rawSymbol = searchParams.get('symbol')?.trim().toUpperCase() ?? ''
+
+  if (!rawSymbol) {
+    return NextResponse.json({ error: 'Symbol is required' }, { status: 400 })
+  }
+  if (!SYMBOL_REGEX.test(rawSymbol)) {
+    return NextResponse.json(
+      { error: 'Invalid symbol. Must be 1–10 uppercase letters/numbers.' },
       { status: 400 }
     )
   }
+
+  const symbol = rawSymbol
 
   try {
     // Track whether we fell back to mock data for any fetch
@@ -64,7 +86,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Analysis error:', error)
     return NextResponse.json(
-      { error: 'Failed to analyze stock', message: String(error) },
+      { error: 'Failed to analyze stock. Please try again.' },
       { status: 500 }
     )
   }

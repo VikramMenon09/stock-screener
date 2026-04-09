@@ -1,13 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import type { SearchResult } from '@/lib/types'
 
 const FMP_API_KEY = process.env.FMP_API_KEY
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
-  const query = searchParams.get('q')
+// Only allow printable non-control characters; strip anything else
+const SEARCH_MAX_LENGTH = 100
 
-  if (!query || query.length < 1) {
+export async function GET(request: NextRequest) {
+  // Rate limit: 60 requests per minute per IP
+  const ip = getClientIp(request)
+  const rl = rateLimit(`search:${ip}`, { limit: 60, windowMs: 60_000 })
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please slow down.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      }
+    )
+  }
+
+  const searchParams = request.nextUrl.searchParams
+  const raw = searchParams.get('q') ?? ''
+
+  // Sanitize: trim, strip non-printable characters, enforce max length
+  const query = raw.replace(/[^\x20-\x7E]/g, '').trim().slice(0, SEARCH_MAX_LENGTH)
+
+  if (query.length < 1) {
     return NextResponse.json({ results: [] })
   }
 

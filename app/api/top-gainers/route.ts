@@ -1,10 +1,23 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { calculateShortScore } from '@/lib/analysis-engine'
+import { rateLimit, getClientIp } from '@/lib/rate-limit'
 import type { TopGainer } from '@/lib/types'
 
 const FMP_API_KEY = process.env.FMP_API_KEY
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Rate limit: 20 requests per minute per IP (this endpoint calls external APIs)
+  const ip = getClientIp(request)
+  const rl = rateLimit(`gainers:${ip}`, { limit: 20, windowMs: 60_000 })
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please slow down.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      }
+    )
+  }
   if (FMP_API_KEY) {
     try {
       const response = await fetch(
