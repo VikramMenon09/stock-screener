@@ -1,4 +1,4 @@
-// ShortLens Type Definitions
+// Stock Screener Type Definitions
 
 export type Signal = 'LONG' | 'SHORT' | 'NEUTRAL'
 

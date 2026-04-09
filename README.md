@@ -1,4 +1,4 @@
-# ShortLens
+# Stock Screener
 
 Presentation-ready stock intelligence app. Type any company name or ticker and get an instant **Long / Short / Neutral** recommendation with a full signal breakdown — technicals, fundamentals, momentum, catalysts, and risk flags.
 
@@ -26,8 +26,8 @@ Built for live presentations, finance classrooms, and retail traders who want fa
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/VikramMenon09/ShortLens.git
-cd ShortLens
+git clone https://github.com/VikramMenon09/Stock Screener.git
+cd Stock Screener
 ```
 
 ### 2. Install dependencies
@@ -143,7 +143,7 @@ Scores below 35 → **SHORT** · Above 65 → **LONG** · In between → **NEUTR
 
 ## Disclaimer
 
-ShortLens is for **informational and educational purposes only**. It does not constitute financial advice. Always do your own research before making investment decisions.
+Stock Screener is for **informational and educational purposes only**. It does not constitute financial advice. Always do your own research before making investment decisions.
 
 ---
 

@@ -14,7 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ShortLens | Instant Stock Intelligence',
+  title: 'Stock Screener | Instant Stock Intelligence',
   description: 'Get presentation-ready long/short/neutral stock recommendations with confidence scores, key metrics, and supporting analysis in seconds.',
   generator: 'v0.app',
   keywords: ['stock analysis', 'trading signals', 'investment research', 'stock recommendations'],

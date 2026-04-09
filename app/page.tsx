@@ -14,7 +14,7 @@ import { Sparkles, BarChart3, Clock, ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { AnalysisResult } from '@/lib/types'
 
-export default function ShortLensDashboard() {
+export default function StockScreenerDashboard() {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -63,7 +63,7 @@ export default function ShortLensDashboard() {
                 <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
                   <Sparkles className="h-5 w-5 text-primary" />
                 </div>
-                <span className="text-xl font-bold text-foreground">ShortLens</span>
+                <span className="text-xl font-bold text-foreground">Stock Screener</span>
               </button>
               
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -233,7 +233,7 @@ export default function ShortLensDashboard() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
               <p>
-                ShortLens provides analysis for informational purposes only. Not financial advice.
+                Stock Screener provides analysis for informational purposes only. Not financial advice.
               </p>
               <p>
                 Data from Financial Modeling Prep & Alpha Vantage
