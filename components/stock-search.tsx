@@ -18,7 +18,7 @@ export function StockSearch({ onSelect, isLoading = false }: StockSearchProps) {
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>()
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const searchStocks = useCallback(async (searchQuery: string) => {
     if (searchQuery.length < 1) {
