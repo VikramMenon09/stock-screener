@@ -10,9 +10,83 @@ import { CatalystsList } from '@/components/catalysts-list'
 import { ReasoningBreakdown } from '@/components/reasoning-breakdown'
 import { TopGainersScanner } from '@/components/top-gainers-scanner'
 import { AnalysisSkeleton } from '@/components/analysis-skeleton'
-import { Sparkles, BarChart3, Clock, ArrowLeft } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { ArrowLeft } from 'lucide-react'
 import type { AnalysisResult } from '@/lib/types'
+
+const EXAMPLE_TICKERS = ['NVDA', 'AAPL', 'MSFT', 'TSLA', 'AMZN']
+
+function Wordmark() {
+  return (
+    <span className="flex items-center gap-2.5">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+        <rect width="18" height="18" rx="3" className="fill-foreground" />
+        <rect x="4" y="9" width="2" height="5" fill="white" />
+        <rect x="8" y="6" width="2" height="8" fill="white" />
+        <rect x="12" y="4" width="2" height="10" fill="white" />
+      </svg>
+      <span className="text-[15px] font-semibold tracking-tight text-foreground">
+        Stock Screener
+      </span>
+    </span>
+  )
+}
+
+function Methodology() {
+  const factors = [
+    { name: 'Technical', weight: '40%', detail: 'RSI, moving-average position and crossovers, MACD, Bollinger Bands' },
+    { name: 'Fundamental', weight: '40%', detail: 'P/E, ROE, debt to equity, revenue growth, net margin, current ratio' },
+    { name: 'Momentum', weight: '20%', detail: 'Daily change, relative volume, 52-week range, 5-day to 3-month returns' },
+  ]
+
+  return (
+    <section aria-labelledby="method-heading">
+      <h2 id="method-heading" className="label-caps pb-3 border-b border-border">
+        How the call is made
+      </h2>
+
+      <dl className="divide-y divide-border">
+        {factors.map((f) => (
+          <div key={f.name} className="py-3">
+            <div className="flex items-baseline justify-between">
+              <dt className="font-medium text-foreground">{f.name}</dt>
+              <dd className="text-muted-foreground">{f.weight}</dd>
+            </div>
+            <dd className="mt-0.5 text-[13px] leading-5 text-muted-foreground">{f.detail}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="mt-5">
+        <p className="text-[13px] leading-5 text-muted-foreground">
+          The weighted composite score (0 to 100) sets the call. Confidence is the distance from the neutral band.
+        </p>
+        <div className="mt-3">
+          <div className="flex h-1.5 overflow-hidden rounded-full">
+            <div className="bg-signal-short" style={{ width: '35%' }} />
+            <div className="bg-border-strong" style={{ width: '30%' }} />
+            <div className="bg-signal-long" style={{ width: '35%' }} />
+          </div>
+          <div className="relative mt-1.5 h-4 text-[11px] text-muted-foreground">
+            <span className="absolute left-0">0</span>
+            <span className="absolute -translate-x-1/2" style={{ left: '35%' }}>35</span>
+            <span className="absolute -translate-x-1/2" style={{ left: '65%' }}>65</span>
+            <span className="absolute right-0">100</span>
+          </div>
+          <div className="mt-1 grid grid-cols-[35%_30%_35%] text-[12px] font-medium">
+            <span className="text-signal-short">Short</span>
+            <span className="text-center text-muted-foreground">Neutral</span>
+            <span className="text-right text-signal-long">Long</span>
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-6 pt-4 border-t border-border text-[12px] leading-5 text-muted-foreground">
+        Quotes and fundamentals come from Financial Modeling Prep and Alpha Vantage. Without API keys the app runs on
+        simulated data and labels it as such.
+      </p>
+    </section>
+  )
+}
 
 export default function StockScreenerDashboard() {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
@@ -25,7 +99,7 @@ export default function StockScreenerDashboard() {
 
     try {
       const response = await fetch(`/api/analyze?symbol=${encodeURIComponent(symbol)}`)
-      
+
       if (!response.ok) {
         throw new Error('Failed to analyze stock')
       }
@@ -45,126 +119,99 @@ export default function StockScreenerDashboard() {
     setError(null)
   }
 
+  const isHome = !analysis && !isLoading
+
+  const errorBox = error && (
+    <div
+      role="alert"
+      className="mt-4 border-l-2 border-signal-short bg-signal-short/5 px-3 py-2 text-[13px] text-signal-short"
+    >
+      {error}
+    </div>
+  )
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Background gradient */}
-      <div className="fixed inset-0 bg-gradient-to-br from-background via-background to-primary/5 pointer-events-none" />
-      
-      {/* Main content */}
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="border-b border-border/50 backdrop-blur-sm bg-background/50 sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <button 
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-[2px]">
+        <div className="mx-auto flex h-14 max-w-[1320px] items-center gap-6 px-6 lg:px-8">
+          <button
+            onClick={handleReset}
+            className="shrink-0 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4"
+            aria-label="Stock Screener home"
+          >
+            <Wordmark />
+          </button>
+
+          {!isHome && (
+            <div className="flex flex-1 items-center gap-4">
+              <div className="w-full max-w-[380px]">
+                <StockSearch onSelect={analyzeStock} isLoading={isLoading} size="sm" />
+              </div>
+              <button
                 onClick={handleReset}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                className="hidden sm:flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground transition-colors"
               >
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-xl font-bold text-foreground">Stock Screener</span>
+                <ArrowLeft className="h-3.5 w-3.5" />
+                New search
               </button>
-              
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <BarChart3 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Stock Intelligence</span>
+            </div>
+          )}
+
+          <p className="ml-auto hidden md:block text-[12px] text-muted-foreground">
+            For research only. Not investment advice.
+          </p>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-[1320px] flex-1 px-6 lg:px-8">
+        {isHome ? (
+          // Home / search
+          <div className="grid grid-cols-1 gap-x-14 gap-y-12 pt-14 pb-16 lg:grid-cols-12">
+            <div className="lg:col-span-8">
+              <h1 className="text-[28px] font-semibold leading-tight tracking-tight text-foreground">
+                Analyze a stock
+              </h1>
+              <p className="mt-2 max-w-[560px] text-[15px] leading-6 text-muted-foreground">
+                Enter a ticker or company name to get a long, short or neutral call with its confidence, the signals
+                behind it, and a six-month price chart.
+              </p>
+
+              <div className="mt-7 max-w-[640px]">
+                <StockSearch onSelect={analyzeStock} isLoading={isLoading} size="lg" />
+                <div className="mt-3 flex flex-wrap items-center gap-x-1 gap-y-1 text-[13px]">
+                  <span className="mr-1 text-muted-foreground">Examples</span>
+                  {EXAMPLE_TICKERS.map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => analyzeStock(t)}
+                      className="rounded-sm px-1.5 py-0.5 font-medium text-primary hover:bg-primary/8 transition-colors"
+                    >
+                      {t}
+                    </button>
+                  ))}
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4" />
-                  <span className="hidden sm:inline">Real-time Analysis</span>
-                </div>
+                {errorBox}
+              </div>
+
+              <div className="mt-16">
+                <TopGainersScanner onSelectStock={analyzeStock} variant="table" />
               </div>
             </div>
+
+            <aside className="lg:col-span-4 lg:pt-1">
+              <Methodology />
+            </aside>
           </div>
-        </header>
-
-        {/* Main Layout */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {!analysis && !isLoading ? (
-            // Landing / Search State
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* Search section */}
-              <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]">
-                <div className="text-center mb-8">
-                  <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 text-balance">
-                    Instant Stock Intelligence
-                  </h1>
-                  <p className="text-lg text-muted-foreground max-w-xl mx-auto text-pretty">
-                    Get presentation-ready long/short/neutral recommendations with confidence scores and supporting analysis in seconds.
-                  </p>
-                </div>
-
-                <StockSearch onSelect={analyzeStock} isLoading={isLoading} />
-
-                {error && (
-                  <div className="mt-4 p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
-                    {error}
-                  </div>
-                )}
-
-                {/* Feature highlights */}
-                <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full">
-                  <div className="glass-subtle rounded-xl p-4 text-center">
-                    <div className="w-10 h-10 rounded-lg bg-signal-long/10 flex items-center justify-center mx-auto mb-3">
-                      <Sparkles className="h-5 w-5 text-signal-long" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-1">Smart Signals</h3>
-                    <p className="text-sm text-muted-foreground">
-                      AI-powered long/short/neutral recommendations
-                    </p>
-                  </div>
-                  <div className="glass-subtle rounded-xl p-4 text-center">
-                    <div className="w-10 h-10 rounded-lg bg-chart-4/10 flex items-center justify-center mx-auto mb-3">
-                      <BarChart3 className="h-5 w-5 text-chart-4" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-1">Full Analysis</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Technical, fundamental & momentum scoring
-                    </p>
-                  </div>
-                  <div className="glass-subtle rounded-xl p-4 text-center">
-                    <div className="w-10 h-10 rounded-lg bg-signal-neutral/10 flex items-center justify-center mx-auto mb-3">
-                      <Clock className="h-5 w-5 text-signal-neutral" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-1">Real-time Data</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Live quotes and historical charts
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Top Gainers Scanner */}
-              <div className="w-full lg:w-80">
-                <TopGainersScanner onSelectStock={analyzeStock} />
-              </div>
-            </div>
-          ) : (
-            // Analysis Results State
-            <div className="flex flex-col lg:flex-row gap-8">
-              {/* Main analysis content */}
-              <div className="flex-1 space-y-6">
-                {/* Back button & Search */}
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={handleReset}
-                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    <span>New Search</span>
-                  </button>
-                  <div className="flex-1">
-                    <StockSearch onSelect={analyzeStock} isLoading={isLoading} />
-                  </div>
-                </div>
-
-                {isLoading ? (
-                  <AnalysisSkeleton />
-                ) : analysis ? (
-                  <>
-                    {/* Signal Card */}
+        ) : (
+          // Analysis results
+          <div className="grid grid-cols-1 gap-x-12 gap-y-10 pt-8 pb-16 lg:grid-cols-12">
+            <div className="min-w-0 lg:col-span-9">
+              {isLoading ? (
+                <AnalysisSkeleton />
+              ) : analysis ? (
+                <div className="space-y-12">
+                  <div>
                     <SignalCard
                       symbol={analysis.symbol}
                       name={analysis.name}
@@ -173,75 +220,57 @@ export default function StockScreenerDashboard() {
                       confidenceLabel={analysis.confidenceLabel}
                       score={analysis.score}
                       quote={analysis.quote}
+                      riskFlags={analysis.riskFlags}
                     />
 
-                    {/* Risk Flags */}
+                    {/* Risk notes (the "Simulated data" flag is shown beside the ticker) */}
                     {analysis.riskFlags?.length > 0 && (
                       <RiskFlags riskFlags={analysis.riskFlags} />
                     )}
+                  </div>
 
-                    {/* Price Chart */}
-                    <PriceChart
-                      priceHistory={analysis.priceHistory}
-                      technicals={analysis.technicals}
-                      signal={analysis.signal}
-                      symbol={analysis.symbol}
-                    />
+                  <PriceChart
+                    priceHistory={analysis.priceHistory}
+                    technicals={analysis.technicals}
+                    signal={analysis.signal}
+                    symbol={analysis.symbol}
+                  />
 
-                    {/* Two-column layout for metrics and catalysts */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      <div>
-                        <CatalystsList catalysts={analysis.catalysts} />
-                      </div>
-                      <div>
-                        <ReasoningBreakdown reasoning={analysis.reasoning} />
-                      </div>
-                    </div>
+                  <ReasoningBreakdown reasoning={analysis.reasoning} />
 
-                    {/* Detailed Metrics */}
+                  <div className="grid grid-cols-1 gap-x-10 gap-y-12 md:grid-cols-3">
+                    <CatalystsList catalysts={analysis.catalysts} />
                     <MetricsGrid
                       technicals={analysis.technicals}
                       fundamentals={analysis.fundamentals}
                     />
-
-                    {/* Timestamp */}
-                    <div className="text-center text-xs text-muted-foreground pt-4 border-t border-border/50">
-                      Analysis generated at {new Date(analysis.timestamp).toLocaleString()}
-                    </div>
-                  </>
-                ) : null}
-
-                {error && (
-                  <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
-                    {error}
                   </div>
-                )}
-              </div>
 
-              {/* Top Gainers Sidebar */}
-              <div className="w-full lg:w-80 order-first lg:order-last">
-                <div className="lg:sticky lg:top-24">
-                  <TopGainersScanner onSelectStock={analyzeStock} />
+                  <p className="border-t border-border pt-4 text-[12px] text-muted-foreground">
+                    Analysis generated {new Date(analysis.timestamp).toLocaleString()}
+                  </p>
                 </div>
-              </div>
-            </div>
-          )}
-        </main>
+              ) : null}
 
-        {/* Footer */}
-        <footer className="border-t border-border/50 mt-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-              <p>
-                Stock Screener provides analysis for informational purposes only. Not financial advice.
-              </p>
-              <p>
-                Data from Financial Modeling Prep & Alpha Vantage
-              </p>
+              {errorBox}
             </div>
+
+            <aside className="lg:col-span-3">
+              <div className="lg:sticky lg:top-[88px]">
+                <TopGainersScanner onSelectStock={analyzeStock} variant="rail" />
+              </div>
+            </aside>
           </div>
-        </footer>
-      </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border">
+        <div className="mx-auto flex max-w-[1320px] flex-col gap-2 px-6 py-5 text-[12px] text-muted-foreground sm:flex-row sm:justify-between lg:px-8">
+          <p>Stock Screener provides analysis for informational purposes only. Not financial advice.</p>
+          <p>Data from Financial Modeling Prep and Alpha Vantage</p>
+        </div>
+      </footer>
     </div>
   )
 }

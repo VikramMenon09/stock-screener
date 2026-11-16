@@ -8,9 +8,12 @@ import type { SearchResult } from '@/lib/types'
 interface StockSearchProps {
   onSelect: (symbol: string) => void
   isLoading?: boolean
+  /** "lg" for the home page, "sm" for the compact header field */
+  size?: 'lg' | 'sm'
 }
 
-export function StockSearch({ onSelect, isLoading = false }: StockSearchProps) {
+export function StockSearch({ onSelect, isLoading = false, size = 'lg' }: StockSearchProps) {
+  const isLarge = size === 'lg'
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [isOpen, setIsOpen] = useState(false)
@@ -108,13 +111,18 @@ export function StockSearch({ onSelect, isLoading = false }: StockSearchProps) {
   }
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-2xl mx-auto">
+    <div ref={containerRef} className="relative w-full">
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+        <div
+          className={cn(
+            'pointer-events-none absolute inset-y-0 left-0 flex items-center',
+            isLarge ? 'pl-3.5' : 'pl-2.5'
+          )}
+        >
           {isLoading || isSearching ? (
-            <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+            <Loader2 className={cn('animate-spin text-muted-foreground', isLarge ? 'h-[18px] w-[18px]' : 'h-4 w-4')} />
           ) : (
-            <Search className="h-5 w-5 text-muted-foreground" />
+            <Search className={cn('text-muted-foreground', isLarge ? 'h-[18px] w-[18px]' : 'h-4 w-4')} />
           )}
         </div>
         <input
@@ -128,52 +136,65 @@ export function StockSearch({ onSelect, isLoading = false }: StockSearchProps) {
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search stocks by symbol or name..."
+          placeholder={isLarge ? 'Ticker or company name, e.g. NVDA' : 'Search ticker or company'}
           disabled={isLoading}
+          aria-label="Search stocks by symbol or name"
+          autoComplete="off"
+          spellCheck={false}
           className={cn(
-            'w-full h-14 pl-12 pr-12 rounded-2xl',
-            'glass border-2 border-transparent',
-            'text-lg text-foreground placeholder:text-muted-foreground',
-            'focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20',
-            'transition-all duration-200',
-            'disabled:opacity-50 disabled:cursor-not-allowed'
+            'w-full rounded-md border border-input bg-card text-foreground',
+            'placeholder:text-muted-foreground/80',
+            'focus:border-primary focus:outline-none focus:ring-[3px] focus:ring-primary/15',
+            'transition-[border-color,box-shadow] duration-150',
+            'disabled:cursor-not-allowed disabled:opacity-60',
+            isLarge ? 'h-12 pl-11 pr-24 text-[16px]' : 'h-9 pl-8 pr-8 text-[13px]'
           )}
         />
-        {query && (
-          <button
-            onClick={() => {
-              setQuery('')
-              setResults([])
-              inputRef.current?.focus()
-            }}
-            className="absolute inset-y-0 right-0 flex items-center pr-4 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        )}
+        <div className={cn('absolute inset-y-0 right-0 flex items-center gap-2', isLarge ? 'pr-3' : 'pr-2')}>
+          {query && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => {
+                setQuery('')
+                setResults([])
+                inputRef.current?.focus()
+              }}
+              className="rounded-sm p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <X className={isLarge ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
+            </button>
+          )}
+          {isLarge && (
+            <kbd className="rounded-[4px] border border-border-strong bg-background px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted-foreground">
+              Enter
+            </kbd>
+          )}
+        </div>
       </div>
 
       {/* Results dropdown */}
       {isOpen && results.length > 0 && (
-        <div className="absolute z-50 w-full mt-2 glass rounded-xl overflow-hidden shadow-2xl">
-          <ul className="py-2 max-h-80 overflow-auto">
+        <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-border-strong bg-popover shadow-[0_8px_24px_-8px_rgba(20,20,30,0.18)]">
+          <ul className="max-h-80 overflow-auto py-1" role="listbox">
             {results.map((result, index) => (
-              <li key={result.symbol}>
+              <li key={result.symbol} role="option" aria-selected={selectedIndex === index}>
                 <button
+                  type="button"
                   onClick={() => handleSelect(result.symbol)}
                   className={cn(
-                    'w-full px-4 py-3 flex items-center gap-4 text-left',
-                    'hover:bg-accent/50 transition-colors',
-                    selectedIndex === index && 'bg-accent/50'
+                    'flex w-full items-center gap-3 px-3 py-2 text-left text-[13px]',
+                    'transition-colors hover:bg-secondary',
+                    selectedIndex === index && 'bg-secondary'
                   )}
                 >
-                  <span className="font-mono font-semibold text-primary min-w-[60px]">
+                  <span className="min-w-[56px] font-semibold text-foreground">
                     {result.symbol}
                   </span>
-                  <span className="text-foreground truncate flex-1">
+                  <span className="flex-1 truncate text-muted-foreground">
                     {result.name}
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[11px] uppercase tracking-wide text-muted-foreground/80">
                     {result.exchange}
                   </span>
                 </button>
@@ -182,11 +203,6 @@ export function StockSearch({ onSelect, isLoading = false }: StockSearchProps) {
           </ul>
         </div>
       )}
-
-      {/* Keyboard hint */}
-      <div className="mt-3 text-center text-sm text-muted-foreground">
-        Press <kbd className="px-2 py-1 bg-secondary rounded text-xs font-mono">Enter</kbd> to analyze
-      </div>
     </div>
   )
 }

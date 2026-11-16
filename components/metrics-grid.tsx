@@ -1,16 +1,7 @@
 'use client'
 
-import { cn } from '@/lib/utils'
 import type { TechnicalIndicators, FundamentalMetrics } from '@/lib/types'
-import {
-  Activity,
-  TrendingUp,
-  BarChart3,
-  DollarSign,
-  Percent,
-  Scale,
-  Gauge,
-} from 'lucide-react'
+import { SentimentMark } from './sentiment-mark'
 
 interface MetricsGridProps {
   technicals: TechnicalIndicators
@@ -22,7 +13,6 @@ interface MetricCardProps {
   value: string | number | null
   format?: 'number' | 'percent' | 'currency' | 'ratio'
   sentiment?: 'bullish' | 'bearish' | 'neutral'
-  icon: React.ReactNode
   description?: string
 }
 
@@ -31,7 +21,6 @@ function MetricCard({
   value,
   format = 'number',
   sentiment = 'neutral',
-  icon,
   description,
 }: MetricCardProps) {
   const formatValue = () => {
@@ -50,26 +39,20 @@ function MetricCard({
     }
   }
 
-  const sentimentColors = {
-    bullish: 'text-signal-long',
-    bearish: 'text-signal-short',
-    neutral: 'text-foreground',
-  }
-
   return (
-    <div className="glass-subtle rounded-xl p-4 flex flex-col">
-      <div className="flex items-center gap-2 mb-2">
-        <div className="text-muted-foreground">{icon}</div>
-        <span className="text-xs text-muted-foreground uppercase tracking-wide">
-          {label}
-        </span>
-      </div>
-      <div className={cn('text-xl font-bold font-mono', sentimentColors[sentiment])}>
+    <div className="flex items-center justify-between gap-3 py-2 text-[13px]">
+      <dt className="flex min-w-0 items-center gap-2 text-muted-foreground">
+        <span className="truncate">{label}</span>
+        {description && <span className="text-[12px] text-muted-foreground/80">· {description}</span>}
+      </dt>
+      <dd className="flex shrink-0 items-center gap-2 font-medium text-foreground">
         {formatValue()}
-      </div>
-      {description && (
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
-      )}
+        {sentiment === 'neutral' ? (
+          <span className="w-2" aria-hidden="true" />
+        ) : (
+          <SentimentMark sentiment={sentiment} />
+        )}
+      </dd>
     </div>
   )
 }
@@ -118,18 +101,18 @@ export function MetricsGrid({ technicals, fundamentals }: MetricsGridProps) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Technical Metrics */}
-      <div>
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
-          <Activity className="h-4 w-4" />
-          Technical Indicators
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <>
+      <section aria-labelledby="technicals-heading">
+        <h2
+          id="technicals-heading"
+          className="border-b border-border-strong pb-2 text-[13px] font-semibold text-foreground"
+        >
+          Technical indicators
+        </h2>
+        <dl className="divide-y divide-border">
           <MetricCard
             label="RSI (14)"
             value={technicals.rsi14}
-            icon={<Gauge className="h-4 w-4" />}
             sentiment={getRsiSentiment(technicals.rsi14)}
             description={
               technicals.rsi14 < 30
@@ -139,112 +122,63 @@ export function MetricsGrid({ technicals, fundamentals }: MetricsGridProps) {
                 : 'Neutral zone'
             }
           />
-          <MetricCard
-            label="SMA 20"
-            value={technicals.sma20}
-            format="currency"
-            icon={<TrendingUp className="h-4 w-4" />}
-          />
-          <MetricCard
-            label="SMA 50"
-            value={technicals.sma50}
-            format="currency"
-            icon={<TrendingUp className="h-4 w-4" />}
-          />
-          <MetricCard
-            label="SMA 200"
-            value={technicals.sma200}
-            format="currency"
-            icon={<TrendingUp className="h-4 w-4" />}
-          />
+          <MetricCard label="SMA 20" value={technicals.sma20} format="currency" />
+          <MetricCard label="SMA 50" value={technicals.sma50} format="currency" />
+          <MetricCard label="SMA 200" value={technicals.sma200} format="currency" />
           <MetricCard
             label="MACD"
             value={technicals.macd}
-            icon={<BarChart3 className="h-4 w-4" />}
             sentiment={technicals.macd > 0 ? 'bullish' : 'bearish'}
           />
-          <MetricCard
-            label="MACD Signal"
-            value={technicals.macdSignal}
-            icon={<BarChart3 className="h-4 w-4" />}
-          />
-          <MetricCard
-            label="BB Upper"
-            value={technicals.bollingerUpper}
-            format="currency"
-            icon={<Activity className="h-4 w-4" />}
-          />
-          <MetricCard
-            label="BB Lower"
-            value={technicals.bollingerLower}
-            format="currency"
-            icon={<Activity className="h-4 w-4" />}
-          />
-        </div>
-      </div>
+          <MetricCard label="MACD signal" value={technicals.macdSignal} />
+          <MetricCard label="Bollinger upper" value={technicals.bollingerUpper} format="currency" />
+          <MetricCard label="Bollinger lower" value={technicals.bollingerLower} format="currency" />
+        </dl>
+      </section>
 
-      {/* Fundamental Metrics */}
-      <div>
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
-          <DollarSign className="h-4 w-4" />
-          Fundamental Metrics
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <section aria-labelledby="fundamentals-heading">
+        <h2
+          id="fundamentals-heading"
+          className="border-b border-border-strong pb-2 text-[13px] font-semibold text-foreground"
+        >
+          Fundamentals
+        </h2>
+        <dl className="divide-y divide-border">
           <MetricCard
-            label="P/E Ratio"
+            label="P/E ratio"
             value={fundamentals.peRatio}
             format="ratio"
-            icon={<Scale className="h-4 w-4" />}
             sentiment={getPeSentiment(fundamentals.peRatio)}
           />
+          <MetricCard label="P/B ratio" value={fundamentals.pbRatio} format="ratio" />
           <MetricCard
-            label="P/B Ratio"
-            value={fundamentals.pbRatio}
-            format="ratio"
-            icon={<Scale className="h-4 w-4" />}
-          />
-          <MetricCard
-            label="ROE"
+            label="Return on equity"
             value={fundamentals.roe}
             format="percent"
-            icon={<Percent className="h-4 w-4" />}
             sentiment={getRoeSentiment(fundamentals.roe)}
           />
+          <MetricCard label="Return on assets" value={fundamentals.roa} format="percent" />
           <MetricCard
-            label="ROA"
-            value={fundamentals.roa}
-            format="percent"
-            icon={<Percent className="h-4 w-4" />}
-          />
-          <MetricCard
-            label="Debt/Equity"
+            label="Debt to equity"
             value={fundamentals.debtToEquity}
             format="ratio"
-            icon={<Scale className="h-4 w-4" />}
             sentiment={getDebtSentiment(fundamentals.debtToEquity)}
           />
+          <MetricCard label="Current ratio" value={fundamentals.currentRatio} format="ratio" />
           <MetricCard
-            label="Current Ratio"
-            value={fundamentals.currentRatio}
-            format="ratio"
-            icon={<Scale className="h-4 w-4" />}
-          />
-          <MetricCard
-            label="Revenue Growth"
+            label="Revenue growth"
             value={fundamentals.revenueGrowth}
             format="percent"
-            icon={<TrendingUp className="h-4 w-4" />}
             sentiment={getGrowthSentiment(fundamentals.revenueGrowth)}
           />
           <MetricCard
-            label="Net Margin"
+            label="Net margin"
             value={fundamentals.netMargin}
             format="percent"
-            icon={<Percent className="h-4 w-4" />}
             sentiment={getMarginSentiment(fundamentals.netMargin)}
           />
-        </div>
-      </div>
-    </div>
+        </dl>
+      </section>
+    </>
   )
 }

@@ -1,94 +1,72 @@
 'use client'
 
-import { cn } from '@/lib/utils'
+function Bar({ className = '' }: { className?: string }) {
+  return <div className={`rounded-sm bg-secondary ${className}`} />
+}
 
 export function AnalysisSkeleton() {
   return (
-    <div className="animate-pulse space-y-6">
-      {/* Signal Card Skeleton */}
-      <div className="glass rounded-2xl p-6 border-2 border-border/50">
-        <div className="flex items-start justify-between mb-6">
+    <div className="animate-pulse space-y-12" aria-busy="true" aria-label="Loading analysis">
+      {/* Summary */}
+      <div>
+        <div className="flex flex-col gap-8 pb-7 md:flex-row md:items-start md:justify-between">
           <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="h-8 w-20 bg-secondary rounded" />
-              <div className="h-6 w-24 bg-secondary rounded-full" />
+            <div className="flex items-center gap-3">
+              <Bar className="h-8 w-24" />
+              <Bar className="h-4 w-40" />
             </div>
-            <div className="h-4 w-40 bg-secondary rounded" />
-          </div>
-          <div className="text-right">
-            <div className="h-8 w-28 bg-secondary rounded mb-2" />
-            <div className="h-4 w-20 bg-secondary rounded ml-auto" />
-          </div>
-        </div>
-
-        {/* Gauge skeleton */}
-        <div className="flex justify-center mb-6">
-          <div className="relative">
-            <div className="w-[200px] h-[100px] bg-secondary rounded-t-full" />
-            <div className="absolute top-8 left-1/2 -translate-x-1/2 flex flex-col items-center">
-              <div className="h-10 w-16 bg-secondary/50 rounded" />
-              <div className="h-4 w-24 bg-secondary/50 rounded mt-2" />
+            <div className="mt-5 flex items-end gap-3">
+              <Bar className="h-10 w-44" />
+              <Bar className="h-4 w-28" />
             </div>
           </div>
+          <div className="w-full md:max-w-[400px] md:border-l md:border-border md:pl-8">
+            <div className="flex justify-between">
+              <div>
+                <Bar className="h-3 w-12" />
+                <Bar className="mt-2 h-7 w-24" />
+              </div>
+              <div className="flex flex-col items-end">
+                <Bar className="h-3 w-16" />
+                <Bar className="mt-2 h-7 w-20" />
+              </div>
+            </div>
+            <Bar className="mt-6 h-1 w-full" />
+            <Bar className="mt-3 h-3 w-full" />
+          </div>
         </div>
-
-        {/* Quick stats skeleton */}
-        <div className="grid grid-cols-4 gap-4 pt-4 border-t border-border/50">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="text-center">
-              <div className="h-3 w-16 bg-secondary rounded mx-auto mb-2" />
-              <div className="h-5 w-20 bg-secondary rounded mx-auto" />
+        <div className="grid grid-cols-2 border-y border-border sm:grid-cols-3 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,0.7fr)_minmax(0,1.1fr)_minmax(0,1.35fr)_minmax(0,2fr)]">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className={`py-3 pr-4 ${i === 5 ? 'col-span-2 lg:col-span-1' : ''}`}>
+              <Bar className="h-2.5 w-16" />
+              <Bar className="mt-2 h-4 w-20" />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Chart skeleton */}
-      <div className="glass rounded-2xl p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <div className="h-6 w-32 bg-secondary rounded" />
-            <div className="flex gap-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-8 w-12 bg-secondary rounded-lg" />
-              ))}
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <div className="h-5 w-20 bg-secondary rounded" />
-            <div className="h-5 w-20 bg-secondary rounded" />
-          </div>
+      {/* Chart */}
+      <div>
+        <div className="flex items-center justify-between pb-3">
+          <Bar className="h-4 w-16" />
+          <Bar className="h-6 w-32" />
         </div>
-        <div className="w-full h-[400px] bg-secondary/50 rounded-lg" />
+        <div className="h-[420px] border-t border-border pt-2">
+          <Bar className="h-full w-full bg-secondary/60" />
+        </div>
       </div>
 
-      {/* Metrics skeleton */}
-      <div className="space-y-6">
-        <div>
-          <div className="h-4 w-40 bg-secondary rounded mb-3" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="glass-subtle rounded-xl p-4">
-                <div className="h-3 w-16 bg-secondary rounded mb-3" />
-                <div className="h-6 w-20 bg-secondary rounded" />
+      {/* Breakdown */}
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
+        {[1, 2, 3].map((col) => (
+          <div key={col} className="space-y-3">
+            <Bar className="h-3.5 w-28" />
+            {[1, 2, 3, 4, 5].map((row) => (
+              <div key={row} className="flex justify-between">
+                <Bar className="h-3 w-24" />
+                <Bar className="h-3 w-12" />
               </div>
             ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Catalysts skeleton */}
-      <div className="space-y-3">
-        <div className="h-4 w-28 bg-secondary rounded" />
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="glass-subtle rounded-xl p-4 border-l-4 border-secondary">
-            <div className="flex items-start gap-3">
-              <div className="h-5 w-5 bg-secondary rounded" />
-              <div className="flex-1">
-                <div className="h-5 w-40 bg-secondary rounded mb-2" />
-                <div className="h-4 w-full bg-secondary rounded" />
-              </div>
-            </div>
           </div>
         ))}
       </div>
@@ -98,15 +76,10 @@ export function AnalysisSkeleton() {
 
 export function SearchSkeleton() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-4">
-      <div className="text-center mb-8">
-        <div className="h-10 w-64 bg-secondary rounded mx-auto mb-3" />
-        <div className="h-5 w-96 bg-secondary/50 rounded mx-auto" />
-      </div>
-      <div className="w-full max-w-2xl">
-        <div className="h-14 bg-secondary rounded-2xl" />
-        <div className="h-4 w-48 bg-secondary/50 rounded mx-auto mt-3" />
-      </div>
+    <div className="animate-pulse pt-14">
+      <Bar className="h-8 w-56" />
+      <Bar className="mt-3 h-4 w-96" />
+      <Bar className="mt-7 h-12 w-full max-w-[640px]" />
     </div>
   )
 }
