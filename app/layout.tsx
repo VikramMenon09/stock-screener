@@ -12,7 +12,12 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-mono'
 });
 
+const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : 'http://localhost:3000'
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: 'Stock Screener: long, short or neutral signals for any stock',
   description:
     'Search a ticker or company name to get a long, short or neutral signal with a confidence score, plus the technical, fundamental and momentum analysis behind it.',
