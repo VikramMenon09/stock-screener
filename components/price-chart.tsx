@@ -14,6 +14,19 @@ interface PriceChartProps {
 
 type TimeRange = '1M' | '3M' | '6M'
 
+// Hex mirrors of the CSS tokens in app/globals.css (the chart canvas needs literal colors)
+const CHART_COLORS = {
+  up: '#1f8a5b',
+  down: '#c6453a',
+  sma20: '#2d5ba8',
+  sma50: '#9c968c',
+  ink: '#2a2d33',
+  grid: '#efeee9',
+  axisLine: '#e3e2dc',
+  axisText: '#7a7d83',
+  crosshair: '#b9b8b1',
+}
+
 export function PriceChart({ priceHistory, technicals, signal, symbol }: PriceChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
@@ -23,47 +36,50 @@ export function PriceChart({ priceHistory, technicals, signal, symbol }: PriceCh
   const [timeRange, setTimeRange] = useState<TimeRange>('6M')
   const [showMA, setShowMA] = useState({ sma20: true, sma50: true })
 
-  const signalColors = {
-    LONG: { line: '#22c55e', area: 'rgba(34, 197, 94, 0.1)' },
-    SHORT: { line: '#ef4444', area: 'rgba(239, 68, 68, 0.1)' },
-    NEUTRAL: { line: '#eab308', area: 'rgba(234, 179, 8, 0.1)' },
-  }
-
   useEffect(() => {
     if (!chartContainerRef.current) return
+
+    // Use the page's UI font so axis labels match the rest of the interface
+    const fontFamily =
+      typeof window !== 'undefined'
+        ? getComputedStyle(document.body).fontFamily
+        : 'system-ui, sans-serif'
 
     // Create chart
     const chart = createChart(chartContainerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#9ca3af',
-        fontFamily: 'JetBrains Mono, monospace',
+        textColor: CHART_COLORS.axisText,
+        fontFamily,
+        fontSize: 11,
       },
       grid: {
-        vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
-        horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
+        vertLines: { visible: false },
+        horzLines: { color: CHART_COLORS.grid },
       },
       width: chartContainerRef.current.clientWidth,
-      height: 400,
+      height: 420,
       rightPriceScale: {
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        scaleMargins: { top: 0.1, bottom: 0.1 },
+        borderVisible: false,
+        scaleMargins: { top: 0.1, bottom: 0.08 },
       },
       timeScale: {
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: CHART_COLORS.axisLine,
         timeVisible: true,
         secondsVisible: false,
       },
       crosshair: {
         vertLine: {
-          color: 'rgba(255, 255, 255, 0.3)',
+          color: CHART_COLORS.crosshair,
           width: 1,
-          style: LineStyle.Dashed,
+          style: LineStyle.Solid,
+          labelBackgroundColor: CHART_COLORS.ink,
         },
         horzLine: {
-          color: 'rgba(255, 255, 255, 0.3)',
+          color: CHART_COLORS.crosshair,
           width: 1,
-          style: LineStyle.Dashed,
+          style: LineStyle.Solid,
+          labelBackgroundColor: CHART_COLORS.ink,
         },
       },
     })
@@ -72,28 +88,34 @@ export function PriceChart({ priceHistory, technicals, signal, symbol }: PriceCh
 
     // Candlestick series
     const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#22c55e',
-      downColor: '#ef4444',
-      borderUpColor: '#22c55e',
-      borderDownColor: '#ef4444',
-      wickUpColor: '#22c55e',
-      wickDownColor: '#ef4444',
+      upColor: CHART_COLORS.up,
+      downColor: CHART_COLORS.down,
+      borderUpColor: CHART_COLORS.up,
+      borderDownColor: CHART_COLORS.down,
+      wickUpColor: CHART_COLORS.up,
+      wickDownColor: CHART_COLORS.down,
+      priceLineStyle: LineStyle.Dotted,
+      priceLineColor: CHART_COLORS.crosshair,
     })
     candlestickSeriesRef.current = candlestickSeries
 
     // SMA 20 series
     const sma20Series = chart.addSeries(LineSeries, {
-      color: '#3b82f6',
+      color: CHART_COLORS.sma20,
       lineWidth: 2,
-      title: 'SMA 20',
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
     })
     sma20SeriesRef.current = sma20Series
 
     // SMA 50 series
     const sma50Series = chart.addSeries(LineSeries, {
-      color: '#06b6d4',
+      color: CHART_COLORS.sma50,
       lineWidth: 2,
-      title: 'SMA 50',
+      priceLineVisible: false,
+      lastValueVisible: false,
+      crosshairMarkerVisible: false,
     })
     sma50SeriesRef.current = sma50Series
 
@@ -175,22 +197,56 @@ export function PriceChart({ priceHistory, technicals, signal, symbol }: PriceCh
     chartRef.current?.timeScale().fitContent()
   }, [priceHistory, timeRange, showMA])
 
+  const ranges: TimeRange[] = ['1M', '3M', '6M']
+
   return (
-    <div className="glass rounded-xl p-4">
+    <section aria-label={`${symbol} price chart`}>
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <h3 className="text-lg font-semibold text-foreground">{symbol} Price Chart</h3>
-          <div className="flex items-center gap-2">
-            {(['1M', '3M', '6M'] as TimeRange[]).map((range) => (
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 pb-3">
+        <div className="flex items-baseline gap-3">
+          <h2 className="text-[15px] font-semibold text-foreground">Price</h2>
+          <span className="text-[12px] text-muted-foreground">Daily candles</span>
+        </div>
+
+        <div className="flex items-center gap-5">
+          {/* Moving-average toggles double as the legend */}
+          <div className="flex items-center gap-1">
+            {([
+              { key: 'sma20', label: 'SMA 20', color: CHART_COLORS.sma20 },
+              { key: 'sma50', label: 'SMA 50', color: CHART_COLORS.sma50 },
+            ] as const).map(({ key, label, color }) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={showMA[key]}
+                onClick={() => setShowMA((prev) => ({ ...prev, [key]: !prev[key] }))}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-sm px-2 py-1 text-[12px] transition-colors',
+                  showMA[key] ? 'text-foreground' : 'text-muted-foreground/70 line-through decoration-muted-foreground/50'
+                )}
+              >
+                <span
+                  className="h-[2px] w-3.5 rounded-full"
+                  style={{ backgroundColor: color, opacity: showMA[key] ? 1 : 0.35 }}
+                  aria-hidden="true"
+                />
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex rounded-md border border-border-strong p-0.5" role="group" aria-label="Time range">
+            {ranges.map((range) => (
               <button
                 key={range}
+                type="button"
+                aria-pressed={timeRange === range}
                 onClick={() => setTimeRange(range)}
                 className={cn(
-                  'px-3 py-1 text-sm rounded-md transition-colors',
+                  'min-w-[38px] rounded-[4px] px-2 py-0.5 text-[12px] font-medium transition-colors',
                   timeRange === range
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    ? 'bg-foreground text-background'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 {range}
@@ -198,49 +254,26 @@ export function PriceChart({ priceHistory, technicals, signal, symbol }: PriceCh
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showMA.sma20}
-              onChange={(e) => setShowMA((prev) => ({ ...prev, sma20: e.target.checked }))}
-              className="rounded border-border"
-            />
-            <span className="text-blue-500">SMA 20</span>
-          </label>
-          <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input
-              type="checkbox"
-              checked={showMA.sma50}
-              onChange={(e) => setShowMA((prev) => ({ ...prev, sma50: e.target.checked }))}
-              className="rounded border-border"
-            />
-            <span className="text-cyan-500">SMA 50</span>
-          </label>
-        </div>
       </div>
 
       {/* Chart */}
-      <div ref={chartContainerRef} className="w-full" />
-
-      {/* Current Price Indicator */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-signal-long" />
-            <span className="text-muted-foreground">Bullish Candle</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-signal-short" />
-            <span className="text-muted-foreground">Bearish Candle</span>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-          <span>SMA 20: ${technicals.sma20.toFixed(2)}</span>
-          <span>SMA 50: ${technicals.sma50.toFixed(2)}</span>
-          <span>SMA 200: ${technicals.sma200.toFixed(2)}</span>
-        </div>
+      <div className="border-t border-border pt-2">
+        <div ref={chartContainerRef} className="w-full" />
       </div>
-    </div>
+
+      {/* Moving-average values */}
+      <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[12px]">
+        {[
+          { label: 'SMA 20', value: technicals.sma20 },
+          { label: 'SMA 50', value: technicals.sma50 },
+          { label: 'SMA 200', value: technicals.sma200 },
+        ].map((m) => (
+          <div key={m.label} className="flex gap-1.5">
+            <dt className="text-muted-foreground">{m.label}</dt>
+            <dd className="font-medium text-foreground">${m.value.toFixed(2)}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   )
 }

@@ -1,8 +1,8 @@
 'use client'
 
-import { TrendingUp, TrendingDown, Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import type { Signal, StockQuote } from '@/lib/types'
+import { formatMarketCap, formatPrice, formatVolume, signed } from '@/lib/format'
+import type { RiskFlag, Signal, StockQuote } from '@/lib/types'
 import { ConfidenceGauge } from './confidence-gauge'
 
 interface SignalCardProps {
@@ -13,6 +13,16 @@ interface SignalCardProps {
   confidenceLabel: 'Low' | 'Medium' | 'High'
   score: number
   quote: StockQuote
+  riskFlags?: RiskFlag[]
+}
+
+function Stat({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={cn('py-3 pr-4 lg:px-4 lg:first:pl-0 lg:last:pr-0', className)}>
+      <div className="label-caps">{label}</div>
+      <div className="mt-1 whitespace-nowrap text-[15px] font-medium text-foreground">{children}</div>
+    </div>
+  )
 }
 
 export function SignalCard({
@@ -23,151 +33,89 @@ export function SignalCard({
   confidenceLabel,
   score,
   quote,
+  riskFlags,
 }: SignalCardProps) {
-  const signalConfig = {
-    LONG: {
-      label: 'LONG',
-      color: 'text-signal-long',
-      bgColor: 'bg-signal-long/10',
-      borderColor: 'border-signal-long/30',
-      Icon: TrendingUp,
-    },
-    SHORT: {
-      label: 'SHORT',
-      color: 'text-signal-short',
-      bgColor: 'bg-signal-short/10',
-      borderColor: 'border-signal-short/30',
-      Icon: TrendingDown,
-    },
-    NEUTRAL: {
-      label: 'NEUTRAL',
-      color: 'text-signal-neutral',
-      bgColor: 'bg-signal-neutral/10',
-      borderColor: 'border-signal-neutral/30',
-      Icon: Minus,
-    },
-  }
-
-  const config = signalConfig[signal]
   const isPositive = quote.changePercent >= 0
+  const dataFlag = riskFlags?.find((f) => f.type === 'data')
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(price)
-  }
-
-  const formatMarketCap = (cap: number) => {
-    if (cap >= 1e12) return `$${(cap / 1e12).toFixed(2)}T`
-    if (cap >= 1e9) return `$${(cap / 1e9).toFixed(2)}B`
-    if (cap >= 1e6) return `$${(cap / 1e6).toFixed(2)}M`
-    return `$${cap.toFixed(0)}`
-  }
+  const rangeSpan = quote.high52Week - quote.low52Week
+  const rangePos = rangeSpan > 0
+    ? Math.max(0, Math.min(100, ((quote.price - quote.low52Week) / rangeSpan) * 100))
+    : 50
+  const relVolume = quote.avgVolume > 0 ? quote.volume / quote.avgVolume : null
 
   return (
-    <div
-      className={cn(
-        'glass rounded-xl p-6 border',
-        config.borderColor,
-        'transition-colors duration-200'
-      )}
-    >
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h2 className="text-2xl font-bold text-foreground">{symbol}</h2>
-            <div
+    <section aria-label={`${symbol} summary`}>
+      <div className="flex flex-col gap-8 pb-7 md:flex-row md:items-start md:justify-between">
+        {/* Identity and price */}
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <h1 className="text-[30px] font-semibold leading-9 tracking-tight text-foreground">{symbol}</h1>
+            <span className="truncate text-[15px] text-muted-foreground">{name}</span>
+            {dataFlag && (
+              <span
+                title={dataFlag.description}
+                className="inline-flex items-center gap-1.5 rounded-sm border border-border-strong bg-card px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground cursor-default"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60" aria-hidden="true" />
+                {dataFlag.label}
+              </span>
+            )}
+          </div>
+
+          <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="text-[40px] font-medium leading-none tracking-tight text-foreground">
+              {formatPrice(quote.price)}
+            </span>
+            <span
               className={cn(
-                'flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold',
-                config.bgColor,
-                config.color
+                'text-[16px] font-medium',
+                isPositive ? 'text-signal-long' : 'text-signal-short'
               )}
             >
-              <config.Icon className="h-4 w-4" />
-              {config.label}
-            </div>
+              {signed(quote.change)} ({signed(quote.changePercent)}%)
+            </span>
+            <span className="text-[12px] text-muted-foreground">Today</span>
           </div>
-          <p className="text-muted-foreground text-sm">{name}</p>
         </div>
-        <div className="text-right">
-          <p className="text-2xl font-bold text-foreground font-mono">
-            {formatPrice(quote.price)}
-          </p>
-          <div
-            className={cn(
-              'flex items-center justify-end gap-1 text-sm font-medium',
-              isPositive ? 'text-signal-long' : 'text-signal-short'
-            )}
-          >
-            {isPositive ? (
-              <ArrowUpRight className="h-4 w-4" />
-            ) : (
-              <ArrowDownRight className="h-4 w-4" />
-            )}
-            <span>
-              {isPositive ? '+' : ''}
-              {quote.changePercent.toFixed(2)}%
-            </span>
-            <span className="text-muted-foreground">
-              ({isPositive ? '+' : ''}
-              {formatPrice(quote.change)})
-            </span>
-          </div>
+
+        {/* The call */}
+        <div className="w-full md:max-w-[400px] md:border-l md:border-border md:pl-8">
+          <ConfidenceGauge
+            confidence={confidence}
+            signal={signal}
+            score={score}
+            confidenceLabel={confidenceLabel}
+          />
         </div>
       </div>
 
-      {/* Confidence Gauge */}
-      <div className="flex flex-col items-center gap-2 mb-6">
-        <ConfidenceGauge
-          confidence={confidence}
-          signal={signal}
-          score={score}
-        />
-        <div
-          className={cn(
-            'px-3 py-0.5 rounded-full text-xs font-semibold border',
-            confidenceLabel === 'High'
-              ? 'bg-signal-long/10 border-signal-long/30 text-signal-long'
-              : confidenceLabel === 'Medium'
-              ? 'bg-signal-neutral/10 border-signal-neutral/30 text-signal-neutral'
-              : 'bg-muted/50 border-border text-muted-foreground'
+      {/* Key stats */}
+      <div className="grid grid-cols-2 border-y border-border sm:grid-cols-3 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,0.7fr)_minmax(0,1.1fr)_minmax(0,1.35fr)_minmax(0,2fr)] lg:divide-x lg:divide-border">
+        <Stat label="Market cap">{formatMarketCap(quote.marketCap)}</Stat>
+        <Stat label="P/E ratio">{quote.pe ? quote.pe.toFixed(1) : 'N/A'}</Stat>
+        <Stat label="Volume">
+          {formatVolume(quote.volume)}
+          {relVolume !== null && (
+            <span className="ml-1.5 text-[12px] font-normal text-muted-foreground">{relVolume.toFixed(1)}x avg</span>
           )}
-        >
-          {confidenceLabel} Confidence
-        </div>
+        </Stat>
+        <Stat label="Day range">
+          {formatPrice(quote.dayLow)} &ndash; {formatPrice(quote.dayHigh)}
+        </Stat>
+        <Stat label="52-week range" className="col-span-2 sm:col-span-2 lg:col-span-1">
+          <div className="flex items-center gap-3">
+            <span>{formatPrice(quote.low52Week)}</span>
+            <div className="relative h-1 flex-1 rounded-full bg-border-strong/70" aria-hidden="true">
+              <div
+                className="absolute top-1/2 h-2.5 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground"
+                style={{ left: `${rangePos}%` }}
+              />
+            </div>
+            <span>{formatPrice(quote.high52Week)}</span>
+          </div>
+        </Stat>
       </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-border/50">
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground mb-1">Market Cap</p>
-          <p className="text-sm font-semibold text-foreground">
-            {formatMarketCap(quote.marketCap)}
-          </p>
-        </div>
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground mb-1">P/E Ratio</p>
-          <p className="text-sm font-semibold text-foreground">
-            {quote.pe ? quote.pe.toFixed(1) : 'N/A'}
-          </p>
-        </div>
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground mb-1">52W High</p>
-          <p className="text-sm font-semibold text-foreground">
-            {formatPrice(quote.high52Week)}
-          </p>
-        </div>
-        <div className="text-center">
-          <p className="text-xs text-muted-foreground mb-1">52W Low</p>
-          <p className="text-sm font-semibold text-foreground">
-            {formatPrice(quote.low52Week)}
-          </p>
-        </div>
-      </div>
-    </div>
+    </section>
   )
 }
