@@ -128,19 +128,22 @@ export function StockSearch({ onSelect, isLoading = false }: StockSearchProps) {
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search stocks by symbol or name..."
+          placeholder="Search by ticker or company name"
+          aria-label="Search stocks by ticker or company name"
           disabled={isLoading}
           className={cn(
-            'w-full h-14 pl-12 pr-12 rounded-2xl',
-            'glass border-2 border-transparent',
-            'text-lg text-foreground placeholder:text-muted-foreground',
-            'focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20',
-            'transition-all duration-200',
+            'w-full h-12 pl-12 pr-12 rounded-md',
+            'bg-input border border-border',
+            'text-base text-foreground placeholder:text-muted-foreground',
+            'focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20',
+            'transition-colors duration-200',
             'disabled:opacity-50 disabled:cursor-not-allowed'
           )}
         />
         {query && (
           <button
+            type="button"
+            aria-label="Clear search"
             onClick={() => {
               setQuery('')
               setResults([])
@@ -154,8 +157,13 @@ export function StockSearch({ onSelect, isLoading = false }: StockSearchProps) {
       </div>
 
       {/* Results dropdown */}
+      {isOpen && isSearching && results.length === 0 && query.length > 0 && (
+        <div className="absolute z-50 w-full mt-2 glass rounded-xl px-4 py-3 text-sm text-muted-foreground shadow-md">
+          Searching...
+        </div>
+      )}
       {isOpen && results.length > 0 && (
-        <div className="absolute z-50 w-full mt-2 glass rounded-xl overflow-hidden shadow-2xl">
+        <div className="absolute z-50 w-full mt-2 glass rounded-xl overflow-hidden shadow-md">
           <ul className="py-2 max-h-80 overflow-auto">
             {results.map((result, index) => (
               <li key={result.symbol}>
@@ -167,7 +175,7 @@ export function StockSearch({ onSelect, isLoading = false }: StockSearchProps) {
                     selectedIndex === index && 'bg-accent/50'
                   )}
                 >
-                  <span className="font-mono font-semibold text-primary min-w-[60px]">
+                  <span className="font-mono font-semibold text-primary min-w-16">
                     {result.symbol}
                   </span>
                   <span className="text-foreground truncate flex-1">
@@ -184,8 +192,8 @@ export function StockSearch({ onSelect, isLoading = false }: StockSearchProps) {
       )}
 
       {/* Keyboard hint */}
-      <div className="mt-3 text-center text-sm text-muted-foreground">
-        Press <kbd className="px-2 py-1 bg-secondary rounded text-xs font-mono">Enter</kbd> to analyze
+      <div className="mt-3 text-center text-sm text-muted-foreground hidden sm:block">
+        Press <kbd className="px-2 py-1 bg-secondary rounded-sm text-xs font-mono">Enter</kbd> to analyze
       </div>
     </div>
   )

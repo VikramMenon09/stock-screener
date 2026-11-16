@@ -30,7 +30,6 @@ export function SignalCard({
       color: 'text-signal-long',
       bgColor: 'bg-signal-long/10',
       borderColor: 'border-signal-long/30',
-      glowClass: 'glow-long',
       Icon: TrendingUp,
     },
     SHORT: {
@@ -38,7 +37,6 @@ export function SignalCard({
       color: 'text-signal-short',
       bgColor: 'bg-signal-short/10',
       borderColor: 'border-signal-short/30',
-      glowClass: 'glow-short',
       Icon: TrendingDown,
     },
     NEUTRAL: {
@@ -46,7 +44,6 @@ export function SignalCard({
       color: 'text-signal-neutral',
       bgColor: 'bg-signal-neutral/10',
       borderColor: 'border-signal-neutral/30',
-      glowClass: 'glow-neutral',
       Icon: Minus,
     },
   }
@@ -73,14 +70,13 @@ export function SignalCard({
   return (
     <div
       className={cn(
-        'glass rounded-2xl p-6 border-2',
+        'glass rounded-xl p-6 border',
         config.borderColor,
-        config.glowClass,
-        'transition-all duration-500'
+        'transition-colors duration-200'
       )}
     >
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <h2 className="text-2xl font-bold text-foreground">{symbol}</h2>
@@ -146,7 +142,7 @@ export function SignalCard({
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-4 gap-4 pt-4 border-t border-border/50">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-border/50">
         <div className="text-center">
           <p className="text-xs text-muted-foreground mb-1">Market Cap</p>
           <p className="text-sm font-semibold text-foreground">

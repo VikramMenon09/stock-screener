@@ -24,17 +24,14 @@ export function ConfidenceGauge({ confidence, signal, score }: ConfidenceGaugePr
     LONG: {
       stroke: 'stroke-signal-long',
       text: 'text-signal-long',
-      glow: 'drop-shadow-[0_0_10px_oklch(0.72_0.19_160_/_0.5)]',
     },
     SHORT: {
       stroke: 'stroke-signal-short',
       text: 'text-signal-short',
-      glow: 'drop-shadow-[0_0_10px_oklch(0.55_0.22_25_/_0.5)]',
     },
     NEUTRAL: {
       stroke: 'stroke-signal-neutral',
       text: 'text-signal-neutral',
-      glow: 'drop-shadow-[0_0_10px_oklch(0.75_0.15_85_/_0.5)]',
     },
   }
 
@@ -60,7 +57,7 @@ export function ConfidenceGauge({ confidence, signal, score }: ConfidenceGaugePr
         width="200"
         height="120"
         viewBox="0 0 200 120"
-        className={cn('overflow-visible', colors.glow)}
+        className="overflow-visible"
       >
         {/* Background arc */}
         <path

@@ -91,7 +91,7 @@ export function PriceChart({ priceHistory, technicals, signal, symbol }: PriceCh
 
     // SMA 50 series
     const sma50Series = chart.addSeries(LineSeries, {
-      color: '#8b5cf6',
+      color: '#06b6d4',
       lineWidth: 2,
       title: 'SMA 50',
     })
@@ -176,10 +176,10 @@ export function PriceChart({ priceHistory, technicals, signal, symbol }: PriceCh
   }, [priceHistory, timeRange, showMA])
 
   return (
-    <div className="glass rounded-2xl p-4">
+    <div className="glass rounded-xl p-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap items-center gap-4">
           <h3 className="text-lg font-semibold text-foreground">{symbol} Price Chart</h3>
           <div className="flex items-center gap-2">
             {(['1M', '3M', '6M'] as TimeRange[]).map((range) => (
@@ -187,7 +187,7 @@ export function PriceChart({ priceHistory, technicals, signal, symbol }: PriceCh
                 key={range}
                 onClick={() => setTimeRange(range)}
                 className={cn(
-                  'px-3 py-1 text-sm rounded-lg transition-colors',
+                  'px-3 py-1 text-sm rounded-md transition-colors',
                   timeRange === range
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
@@ -215,7 +215,7 @@ export function PriceChart({ priceHistory, technicals, signal, symbol }: PriceCh
               onChange={(e) => setShowMA((prev) => ({ ...prev, sma50: e.target.checked }))}
               className="rounded border-border"
             />
-            <span className="text-purple-500">SMA 50</span>
+            <span className="text-cyan-500">SMA 50</span>
           </label>
         </div>
       </div>
@@ -224,7 +224,7 @@ export function PriceChart({ priceHistory, technicals, signal, symbol }: PriceCh
       <div ref={chartContainerRef} className="w-full" />
 
       {/* Current Price Indicator */}
-      <div className="mt-4 flex items-center justify-between text-sm">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-signal-long" />
@@ -235,7 +235,7 @@ export function PriceChart({ priceHistory, technicals, signal, symbol }: PriceCh
             <span className="text-muted-foreground">Bearish Candle</span>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
           <span>SMA 20: ${technicals.sma20.toFixed(2)}</span>
           <span>SMA 50: ${technicals.sma50.toFixed(2)}</span>
           <span>SMA 200: ${technicals.sma200.toFixed(2)}</span>

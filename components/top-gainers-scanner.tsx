@@ -12,17 +12,21 @@ interface TopGainersScannerProps {
 export function TopGainersScanner({ onSelectStock }: TopGainersScannerProps) {
   const [gainers, setGainers] = useState<TopGainer[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   const fetchGainers = async () => {
     setIsLoading(true)
+    setHasError(false)
     try {
       const response = await fetch('/api/top-gainers')
+      if (!response.ok) throw new Error('Request failed')
       const data = await response.json()
       setGainers(data.gainers || [])
       setLastUpdated(new Date())
     } catch (error) {
       console.error('Failed to fetch top gainers:', error)
+      setHasError(true)
     } finally {
       setIsLoading(false)
     }
@@ -51,7 +55,7 @@ export function TopGainersScanner({ onSelectStock }: TopGainersScannerProps) {
   }
 
   return (
-    <div className="glass rounded-2xl p-4 h-full flex flex-col">
+    <div className="glass rounded-xl p-4 h-full flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -61,12 +65,10 @@ export function TopGainersScanner({ onSelectStock }: TopGainersScannerProps) {
         <button
           onClick={fetchGainers}
           disabled={isLoading}
-          className={cn(
-            'p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors',
-            isLoading && 'animate-spin'
-          )}
+          aria-label="Refresh short candidates"
+          className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200 disabled:opacity-50"
         >
-          <RefreshCw className="h-4 w-4" />
+          <RefreshCw className={cn('h-4 w-4', isLoading && 'animate-spin')} />
         </button>
       </div>
 
@@ -83,7 +85,7 @@ export function TopGainersScanner({ onSelectStock }: TopGainersScannerProps) {
           // Skeleton loading
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="animate-pulse">
-              <div className="glass-subtle rounded-lg p-3 flex items-center gap-3">
+              <div className="glass-subtle rounded-md p-3 flex items-center gap-3">
                 <div className="w-12 h-5 bg-secondary rounded" />
                 <div className="flex-1">
                   <div className="w-24 h-4 bg-secondary rounded mb-1" />
@@ -93,12 +95,20 @@ export function TopGainersScanner({ onSelectStock }: TopGainersScannerProps) {
               </div>
             </div>
           ))
+        ) : hasError ? (
+          <p className="text-sm text-muted-foreground py-6 text-center">
+            Couldn&apos;t load short candidates. Use the refresh button to try again.
+          </p>
+        ) : gainers.length === 0 ? (
+          <p className="text-sm text-muted-foreground py-6 text-center">
+            No candidates available right now.
+          </p>
         ) : (
           gainers.map((gainer, index) => (
             <button
               key={gainer.symbol}
               onClick={() => onSelectStock(gainer.symbol)}
-              className="w-full glass-subtle rounded-lg p-3 flex items-center gap-3 hover:bg-accent/50 transition-colors text-left group"
+              className="w-full glass-subtle rounded-md p-3 flex items-center gap-3 hover:bg-accent transition-colors duration-200 text-left group"
             >
               {/* Rank */}
               <span className="text-xs font-mono text-muted-foreground w-5">
@@ -137,7 +147,7 @@ export function TopGainersScanner({ onSelectStock }: TopGainersScannerProps) {
                     gainer.shortScore >= 70
                       ? 'text-signal-short'
                       : gainer.shortScore >= 50
-                      ? 'text-yellow-400'
+                      ? 'text-signal-neutral'
                       : 'text-muted-foreground'
                   )}
                 >
@@ -150,7 +160,7 @@ export function TopGainersScanner({ onSelectStock }: TopGainersScannerProps) {
       </div>
 
       {/* Footer hint */}
-      <div className="mt-4 pt-3 border-t border-border/50">
+      <div className="mt-4 pt-3 border-t border-border">
         <p className="text-xs text-center text-muted-foreground">
           Ranked by short score · click to analyze
         </p>

@@ -6,7 +6,7 @@ export function AnalysisSkeleton() {
   return (
     <div className="animate-pulse space-y-6">
       {/* Signal Card Skeleton */}
-      <div className="glass rounded-2xl p-6 border-2 border-border/50">
+      <div className="glass rounded-xl p-6 border border-border">
         <div className="flex items-start justify-between mb-6">
           <div>
             <div className="flex items-center gap-3 mb-2">
@@ -33,7 +33,7 @@ export function AnalysisSkeleton() {
         </div>
 
         {/* Quick stats skeleton */}
-        <div className="grid grid-cols-4 gap-4 pt-4 border-t border-border/50">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-border/50">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="text-center">
               <div className="h-3 w-16 bg-secondary rounded mx-auto mb-2" />
@@ -44,13 +44,13 @@ export function AnalysisSkeleton() {
       </div>
 
       {/* Chart skeleton */}
-      <div className="glass rounded-2xl p-4">
+      <div className="glass rounded-xl p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <div className="h-6 w-32 bg-secondary rounded" />
             <div className="flex gap-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-8 w-12 bg-secondary rounded-lg" />
+                <div key={i} className="h-8 w-12 bg-secondary rounded-md" />
               ))}
             </div>
           </div>
@@ -59,7 +59,7 @@ export function AnalysisSkeleton() {
             <div className="h-5 w-20 bg-secondary rounded" />
           </div>
         </div>
-        <div className="w-full h-[400px] bg-secondary/50 rounded-lg" />
+        <div className="w-full h-[400px] bg-secondary/50 rounded-md" />
       </div>
 
       {/* Metrics skeleton */}
@@ -104,7 +104,7 @@ export function SearchSkeleton() {
         <div className="h-5 w-96 bg-secondary/50 rounded mx-auto" />
       </div>
       <div className="w-full max-w-2xl">
-        <div className="h-14 bg-secondary rounded-2xl" />
+        <div className="h-14 bg-secondary rounded-xl" />
         <div className="h-4 w-48 bg-secondary/50 rounded mx-auto mt-3" />
       </div>
     </div>

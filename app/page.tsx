@@ -10,8 +10,7 @@ import { CatalystsList } from '@/components/catalysts-list'
 import { ReasoningBreakdown } from '@/components/reasoning-breakdown'
 import { TopGainersScanner } from '@/components/top-gainers-scanner'
 import { AnalysisSkeleton } from '@/components/analysis-skeleton'
-import { Sparkles, BarChart3, Clock, ArrowLeft } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { LineChart, BarChart3, Database, ArrowLeft } from 'lucide-react'
 import type { AnalysisResult } from '@/lib/types'
 
 export default function StockScreenerDashboard() {
@@ -47,35 +46,19 @@ export default function StockScreenerDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Background gradient */}
-      <div className="fixed inset-0 bg-gradient-to-br from-background via-background to-primary/5 pointer-events-none" />
-      
       {/* Main content */}
       <div className="relative z-10">
         {/* Header */}
-        <header className="border-b border-border/50 backdrop-blur-sm bg-background/50 sticky top-0 z-50">
+        <header className="border-b border-border bg-background sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <button 
                 onClick={handleReset}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity duration-200"
               >
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <span className="text-xl font-bold text-foreground">Stock Screener</span>
+                <LineChart className="h-5 w-5 text-primary" />
+                <span className="text-lg font-semibold text-foreground">Stock Screener</span>
               </button>
-              
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1.5">
-                  <BarChart3 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Stock Intelligence</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4" />
-                  <span className="hidden sm:inline">Real-time Analysis</span>
-                </div>
-              </div>
             </div>
           </div>
         </header>
@@ -88,51 +71,35 @@ export default function StockScreenerDashboard() {
               {/* Search section */}
               <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]">
                 <div className="text-center mb-8">
-                  <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4 text-balance">
-                    Instant Stock Intelligence
+                  <h1 className="text-3xl sm:text-4xl font-semibold text-foreground mb-4 text-balance">
+                    Long, short or neutral on any stock
                   </h1>
                   <p className="text-lg text-muted-foreground max-w-xl mx-auto text-pretty">
-                    Get presentation-ready long/short/neutral recommendations with confidence scores and supporting analysis in seconds.
+                    Search a ticker or company name to get a signal with a confidence score and the technical, fundamental and momentum reasoning behind it.
                   </p>
                 </div>
 
                 <StockSearch onSelect={analyzeStock} isLoading={isLoading} />
 
                 {error && (
-                  <div className="mt-4 p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+                  <div role="alert" className="mt-4 p-4 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm">
                     {error}
                   </div>
                 )}
 
                 {/* Feature highlights */}
-                <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl w-full">
-                  <div className="glass-subtle rounded-xl p-4 text-center">
-                    <div className="w-10 h-10 rounded-lg bg-signal-long/10 flex items-center justify-center mx-auto mb-3">
-                      <Sparkles className="h-5 w-5 text-signal-long" />
+                <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl w-full">
+                  {[
+                    { Icon: LineChart, title: 'Signal and confidence', body: 'A long, short or neutral call with a confidence score.' },
+                    { Icon: BarChart3, title: 'Scored breakdown', body: 'Technical, fundamental and momentum factors shown line by line.' },
+                    { Icon: Database, title: 'Quotes and history', body: 'Current quote, price chart and key metrics for the symbol.' },
+                  ].map(({ Icon, title, body }) => (
+                    <div key={title} className="glass-subtle rounded-xl p-4">
+                      <Icon className="h-4 w-4 text-primary mb-2" />
+                      <h3 className="text-sm font-semibold text-foreground mb-1">{title}</h3>
+                      <p className="text-sm text-muted-foreground">{body}</p>
                     </div>
-                    <h3 className="font-semibold text-foreground mb-1">Smart Signals</h3>
-                    <p className="text-sm text-muted-foreground">
-                      AI-powered long/short/neutral recommendations
-                    </p>
-                  </div>
-                  <div className="glass-subtle rounded-xl p-4 text-center">
-                    <div className="w-10 h-10 rounded-lg bg-chart-4/10 flex items-center justify-center mx-auto mb-3">
-                      <BarChart3 className="h-5 w-5 text-chart-4" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-1">Full Analysis</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Technical, fundamental & momentum scoring
-                    </p>
-                  </div>
-                  <div className="glass-subtle rounded-xl p-4 text-center">
-                    <div className="w-10 h-10 rounded-lg bg-signal-neutral/10 flex items-center justify-center mx-auto mb-3">
-                      <Clock className="h-5 w-5 text-signal-neutral" />
-                    </div>
-                    <h3 className="font-semibold text-foreground mb-1">Real-time Data</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Live quotes and historical charts
-                    </p>
-                  </div>
+                  ))}
                 </div>
               </div>
 
@@ -147,15 +114,15 @@ export default function StockScreenerDashboard() {
               {/* Main analysis content */}
               <div className="flex-1 space-y-6">
                 {/* Back button & Search */}
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                   <button
                     onClick={handleReset}
-                    className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-200"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     <span>New Search</span>
                   </button>
-                  <div className="flex-1">
+                  <div className="flex-1 w-full">
                     <StockSearch onSelect={analyzeStock} isLoading={isLoading} />
                   </div>
                 </div>
@@ -205,14 +172,14 @@ export default function StockScreenerDashboard() {
                     />
 
                     {/* Timestamp */}
-                    <div className="text-center text-xs text-muted-foreground pt-4 border-t border-border/50">
+                    <div className="text-center text-xs text-muted-foreground pt-4 border-t border-border">
                       Analysis generated at {new Date(analysis.timestamp).toLocaleString()}
                     </div>
                   </>
                 ) : null}
 
                 {error && (
-                  <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+                  <div role="alert" className="p-4 rounded-md bg-destructive/10 border border-destructive/30 text-destructive text-sm">
                     {error}
                   </div>
                 )}
@@ -229,14 +196,14 @@ export default function StockScreenerDashboard() {
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-border/50 mt-12">
+        <footer className="border-t border-border mt-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
               <p>
-                Stock Screener provides analysis for informational purposes only. Not financial advice.
+                &copy; {new Date().getFullYear()} Stock Screener. For informational purposes only, not financial advice.
               </p>
               <p>
-                Data from Financial Modeling Prep & Alpha Vantage
+                Data from Financial Modeling Prep and Alpha Vantage
               </p>
             </div>
           </div>
