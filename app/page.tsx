@@ -267,7 +267,7 @@ export default function StockScreenerDashboard() {
       {/* Footer */}
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-[1320px] flex-col gap-2 px-6 py-5 text-[12px] text-muted-foreground sm:flex-row sm:justify-between lg:px-8">
-          <p>Stock Screener provides analysis for informational purposes only. Not financial advice.</p>
+          <p>&copy; {new Date().getFullYear()} Stock Screener. For informational purposes only, not financial advice.</p>
           <p>Data from Financial Modeling Prep and Alpha Vantage</p>
         </div>
       </footer>

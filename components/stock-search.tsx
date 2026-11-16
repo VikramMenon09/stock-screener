@@ -138,7 +138,7 @@ export function StockSearch({ onSelect, isLoading = false, size = 'lg' }: StockS
           onKeyDown={handleKeyDown}
           placeholder={isLarge ? 'Ticker or company name, e.g. NVDA' : 'Search ticker or company'}
           disabled={isLoading}
-          aria-label="Search stocks by symbol or name"
+          aria-label="Search stocks by ticker or company name"
           autoComplete="off"
           spellCheck={false}
           className={cn(
@@ -174,6 +174,11 @@ export function StockSearch({ onSelect, isLoading = false, size = 'lg' }: StockS
       </div>
 
       {/* Results dropdown */}
+      {isOpen && isSearching && results.length === 0 && query.length > 0 && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-border-strong bg-popover px-3 py-2 text-[13px] text-muted-foreground shadow-[0_8px_24px_-8px_rgba(20,20,30,0.18)]">
+          Searching...
+        </div>
+      )}
       {isOpen && results.length > 0 && (
         <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-border-strong bg-popover shadow-[0_8px_24px_-8px_rgba(20,20,30,0.18)]">
           <ul className="max-h-80 overflow-auto py-1" role="listbox">

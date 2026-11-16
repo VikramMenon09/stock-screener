@@ -14,27 +14,28 @@ const plexMono = IBM_Plex_Mono({
   variable: '--font-mono',
 })
 
+const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : 'http://localhost:3000'
+
 export const metadata: Metadata = {
-  title: 'Stock Screener',
-  description: 'Get presentation-ready long/short/neutral stock recommendations with confidence scores, key metrics, and supporting analysis in seconds.',
-  generator: 'v0.app',
-  keywords: ['stock analysis', 'trading signals', 'investment research', 'stock recommendations'],
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+  metadataBase: new URL(siteUrl),
+  title: 'Stock Screener: long, short or neutral signals for any stock',
+  description:
+    'Search a ticker or company name to get a long, short or neutral signal with a confidence score, plus the technical, fundamental and momentum analysis behind it.',
+  keywords: ['stock screener', 'stock analysis', 'short candidates', 'technical analysis'],
+  openGraph: {
+    title: 'Stock Screener',
+    description:
+      'A long, short or neutral signal with a confidence score and the analysis behind it, for any stock you search.',
+    type: 'website',
+    siteName: 'Stock Screener',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Stock Screener',
+    description:
+      'A long, short or neutral signal with a confidence score and the analysis behind it, for any stock you search.',
   },
 }
 

@@ -31,17 +31,21 @@ function ScoreBar({ score }: { score: number }) {
 export function TopGainersScanner({ onSelectStock, variant = 'rail' }: TopGainersScannerProps) {
   const [gainers, setGainers] = useState<TopGainer[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   const fetchGainers = async () => {
     setIsLoading(true)
+    setHasError(false)
     try {
       const response = await fetch('/api/top-gainers')
+      if (!response.ok) throw new Error('Request failed')
       const data = await response.json()
       setGainers(data.gainers || [])
       setLastUpdated(new Date())
     } catch (error) {
       console.error('Failed to fetch top gainers:', error)
+      setHasError(true)
     } finally {
       setIsLoading(false)
     }
@@ -55,6 +59,18 @@ export function TopGainersScanner({ onSelectStock, variant = 'rail' }: TopGainer
   }, [])
 
   const isTable = variant === 'table'
+  const showSkeleton = isLoading && gainers.length === 0
+
+  // Shown in place of the rows when the request failed or returned nothing
+  const statusMessage = hasError ? (
+    <p className="py-6 text-center text-[13px] text-muted-foreground">
+      Couldn&apos;t load short candidates. Use the refresh button to try again.
+    </p>
+  ) : gainers.length === 0 ? (
+    <p className="py-6 text-center text-[13px] text-muted-foreground">
+      No candidates available right now.
+    </p>
+  ) : null
 
   const header = (
     <div className={cn('flex items-end justify-between gap-4 border-b border-border', isTable ? 'pb-3' : 'pb-2.5')}>
@@ -67,7 +83,7 @@ export function TopGainersScanner({ onSelectStock, variant = 'rail' }: TopGainer
         </p>
       </div>
       <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
-        {lastUpdated && isTable && <span>Updated {lastUpdated.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>}
+        {lastUpdated && isTable && !hasError && <span>Updated {lastUpdated.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>}
         <button
           type="button"
           onClick={fetchGainers}
@@ -96,7 +112,7 @@ export function TopGainersScanner({ onSelectStock, variant = 'rail' }: TopGainer
           <span className="text-right">Short score</span>
         </div>
         <div className="divide-y divide-border border-b border-border">
-          {isLoading && gainers.length === 0
+          {showSkeleton
             ? Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className={cn(cols, 'h-10 animate-pulse')}>
                   <div className="h-3 w-3 rounded-sm bg-secondary" />
@@ -108,7 +124,7 @@ export function TopGainersScanner({ onSelectStock, variant = 'rail' }: TopGainer
                   <div className="ml-auto h-3 w-20 rounded-sm bg-secondary" />
                 </div>
               ))
-            : gainers.map((g, index) => (
+            : statusMessage ?? gainers.map((g, index) => (
                 <button
                   key={g.symbol}
                   type="button"
@@ -141,7 +157,7 @@ export function TopGainersScanner({ onSelectStock, variant = 'rail' }: TopGainer
         <span className="text-right">Score</span>
       </div>
       <div className="divide-y divide-border border-y border-border">
-        {isLoading && gainers.length === 0
+        {showSkeleton
           ? Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="flex h-[52px] animate-pulse items-center justify-between">
                 <div className="space-y-1.5">
@@ -151,7 +167,7 @@ export function TopGainersScanner({ onSelectStock, variant = 'rail' }: TopGainer
                 <div className="h-3 w-16 rounded-sm bg-secondary" />
               </div>
             ))
-          : gainers.map((g) => (
+          : statusMessage ?? gainers.map((g) => (
               <button
                 key={g.symbol}
                 type="button"
@@ -178,7 +194,7 @@ export function TopGainersScanner({ onSelectStock, variant = 'rail' }: TopGainer
             ))}
       </div>
       <p className="mt-3 text-[12px] leading-5 text-muted-foreground">
-        {lastUpdated ? `Updated ${lastUpdated.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. ` : ''}
+        {lastUpdated && !hasError ? `Updated ${lastUpdated.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}. ` : ''}
         Select a row to analyze it.
       </p>
     </section>
